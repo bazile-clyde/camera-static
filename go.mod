@@ -4,10 +4,10 @@ go 1.20
 
 require (
 	github.com/edaniels/golog v0.0.0-20230215213219-28954395e8d0
+	github.com/pion/mediadevices v0.5.1-0.20230724160738-03c44ee80347
+	github.com/pkg/errors v0.9.1
 	github.com/viamrobotics/gostream v0.0.0-20230725145737-ed58004e202e
-	go.uber.org/ratelimit v0.3.0
 	go.viam.com/rdk v0.7.0
-	go.viam.com/utils v0.1.38
 )
 
 require (
@@ -88,7 +88,6 @@ require (
 	github.com/pion/interceptor v0.1.17 // indirect
 	github.com/pion/logging v0.2.2 // indirect
 	github.com/pion/mdns v0.0.8-0.20230502060824-17c664ea7d5c // indirect
-	github.com/pion/mediadevices v0.5.1-0.20230724160738-03c44ee80347 // indirect
 	github.com/pion/randutil v0.1.0 // indirect
 	github.com/pion/rtcp v1.2.10 // indirect
 	github.com/pion/rtp v1.7.13 // indirect
@@ -99,7 +98,6 @@ require (
 	github.com/pion/transport/v2 v2.2.1 // indirect
 	github.com/pion/turn/v2 v2.1.2 // indirect
 	github.com/pion/webrtc/v3 v3.2.11 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rs/cors v1.9.0 // indirect
@@ -124,6 +122,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	go.viam.com/api v0.1.164 // indirect
 	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2 // indirect
+	go.viam.com/utils v0.1.40 // indirect
 	goji.io v2.0.2+incompatible // indirect
 	golang.org/x/crypto v0.10.0 // indirect
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
@@ -147,3 +146,10 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
+
+replace github.com/giorgisio/goav => /usr/local/libs/goav
+
+
+replace github.com/viamrobotics/gostream => /usr/local/libs/gostream
+
+replace go.viam.com/rdk => /usr/local/libs/rdk
