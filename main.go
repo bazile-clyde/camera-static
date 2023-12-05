@@ -1,17 +1,24 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"context"
+	"fmt"
 	vidio "github.com/AlexEidt/Vidio"
 	"github.com/edaniels/golog"
 	"go.viam.com/rdk/components/camera"
 	"go.viam.com/rdk/gostream"
+	ourcodec "go.viam.com/rdk/gostream/codec"
 	"go.viam.com/rdk/gostream/codec/x264"
 	gimage "go.viam.com/rdk/gostream/image"
 	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/module"
 	"go.viam.com/rdk/resource"
+	"go.viam.com/rdk/rimage"
 	"image"
+	"image/jpeg"
+	"strings"
 )
 
 var model = resource.NewModel("viam", "camera", "static")
@@ -56,6 +63,26 @@ func handleErr(err error) {
 	}
 }
 
+func frameToH264(ctx context.Context, e ourcodec.VideoEncoder, f image.Image) (image.Image, func(), error) {
+	fmt.Println("H264 ENCODER!")
+	bytes, err := e.Encode(ctx, f)
+	handleErr(err)
+
+	return gimage.NewH264Image(bytes), func() {}, err
+
+}
+func frameToJpeg(f *image.RGBA) (image.Image, func(), error) {
+	fmt.Println("JPEG ENCODER!")
+	b := new(bytes.Buffer)
+	w := bufio.NewWriter(b)
+	handleErr(rimage.EncodeJPEG(w, f))
+
+	ret, err := jpeg.Decode(bytes.NewReader(b.Bytes()))
+	handleErr(err)
+
+	return ret, func() {}, err
+}
+
 func newCamera(ctx context.Context, _ resource.Dependencies, _ resource.Config, logger logging.Logger) (camera.Camera, error) {
 	// ffmpeg -f lavfi -i testsrc=duration=10:size=640x480:rate=30 testsrc.mp4
 	v, err := vidio.NewVideo("/usr/local/libs/camera-static/testsrc.mp4")
@@ -73,10 +100,14 @@ func newCamera(ctx context.Context, _ resource.Dependencies, _ resource.Config, 
 		frame := image.NewRGBA(image.Rect(0, 0, w, h))
 		frame.Pix = v.FrameBuffer()
 
-		bytes, err := encoder.Encode(ctx, frame)
-		handleErr(err)
-
-		return gimage.NewH264Image(bytes), func() {}, err
+		mime := gostream.MIMETypeHint(ctx, "")
+		if strings.Contains(mime, "video/h264") {
+			return frameToH264(ctx, encoder, frame)
+		} else if strings.Contains(mime, "image/jpeg") {
+			return frameToJpeg(frame)
+		} else {
+			panic(fmt.Sprintln("unrecognized MIME type:", mime))
+		}
 	})
 
 	cam := static{VideoReader: reader}
