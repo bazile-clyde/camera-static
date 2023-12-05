@@ -14,8 +14,10 @@ import (
 	gimage "go.viam.com/rdk/gostream/image"
 	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/module"
+	"go.viam.com/rdk/pointcloud"
 	"go.viam.com/rdk/resource"
 	"go.viam.com/rdk/rimage"
+	"go.viam.com/rdk/rimage/transform"
 	"image"
 	"image/jpeg"
 	"strings"
@@ -53,8 +55,48 @@ type static struct {
 	gostream.VideoReader
 }
 
-func (s static) Close(_ context.Context) error {
+func (s *static) Name() resource.Name {
+	return resource.NewName(camera.API, "static")
+}
+
+func (s *static) Reconfigure(ctx context.Context, deps resource.Dependencies, conf resource.Config) error {
 	return nil
+}
+
+func (s *static) DoCommand(ctx context.Context, cmd map[string]interface{}) (map[string]interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *static) Projector(ctx context.Context) (transform.Projector, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *static) Images(ctx context.Context) ([]camera.NamedImage, resource.ResponseMetadata, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *static) Stream(ctx context.Context, errHandlers ...gostream.ErrorHandler) (gostream.VideoStream, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *static) NextPointCloud(ctx context.Context) (pointcloud.PointCloud, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *static) Close(_ context.Context) error {
+	return nil
+}
+
+func (s *static) Properties(ctx context.Context) (camera.Properties, error) {
+	return camera.Properties{
+		SupportsPCD:  true,
+		FrameFormats: []string{"video/h264", "image/jpeg"},
+	}, nil
 }
 
 func handleErr(err error) {
@@ -64,7 +106,7 @@ func handleErr(err error) {
 }
 
 func frameToH264(ctx context.Context, e ourcodec.VideoEncoder, f image.Image) (image.Image, func(), error) {
-	fmt.Println("H264 ENCODER!")
+	// fmt.Println("H264 ENCODER!")
 	bytes, err := e.Encode(ctx, f)
 	handleErr(err)
 
@@ -72,7 +114,7 @@ func frameToH264(ctx context.Context, e ourcodec.VideoEncoder, f image.Image) (i
 
 }
 func frameToJpeg(f *image.RGBA) (image.Image, func(), error) {
-	fmt.Println("JPEG ENCODER!")
+	// fmt.Println("JPEG ENCODER!")
 	b := new(bytes.Buffer)
 	w := bufio.NewWriter(b)
 	handleErr(rimage.EncodeJPEG(w, f))
@@ -111,9 +153,7 @@ func newCamera(ctx context.Context, _ resource.Dependencies, _ resource.Config, 
 	})
 
 	cam := static{VideoReader: reader}
-	src, err := camera.NewVideoSourceFromReader(ctx, cam, nil, camera.ColorStream)
 	handleErr(err)
 
-	name := resource.NewName(camera.API, "static")
-	return camera.FromVideoSource(name, src, logger), nil
+	return &cam, nil
 }
