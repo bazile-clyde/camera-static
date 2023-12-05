@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	vidio "github.com/AlexEidt/Vidio"
 	"github.com/edaniels/golog"
-	"github.com/pkg/errors"
 	"go.viam.com/rdk/components/camera"
 	"go.viam.com/rdk/gostream"
 	"go.viam.com/rdk/gostream/codec/x264"
@@ -39,9 +37,7 @@ func main() {
 
 	err = mod.Start(ctx)
 	defer mod.Close(ctx)
-	if err != nil {
-		panic(err)
-	}
+	handleErr(err)
 
 	<-ctx.Done()
 }
@@ -56,7 +52,6 @@ func (s static) Close(_ context.Context) error {
 
 func handleErr(err error) {
 	if err != nil {
-		fmt.Println(err.Error())
 		panic(err.Error())
 	}
 }
@@ -66,30 +61,27 @@ func newCamera(ctx context.Context, _ resource.Dependencies, _ resource.Config, 
 	v, err := vidio.NewVideo("/usr/local/libs/camera-static/testsrc.mp4")
 	handleErr(err)
 
-	n := v.Frames()
-	i := 0
-	l := golog.NewLogger("newCamera")
+	n, i := v.Frames(), 0
 	w, h := 640, 480
+	l := golog.NewLogger("newCamera")
 	encoder, _ := x264.NewEncoder(w, h, 30, l)
 
 	reader := gostream.VideoReaderFunc(func(ctx context.Context) (image.Image, func(), error) {
-		defer func() { i = (i + 1) % n }()
-		img, err := v.ReadFrames(i)
+		handleErr(v.ReadFrame(i))
+		i = (i + 1) % n
+
+		frame := image.NewRGBA(image.Rect(0, 0, w, h))
+		frame.Pix = v.FrameBuffer()
+
+		bytes, err := encoder.Encode(ctx, frame)
 		handleErr(err)
 
-		bytes, err := encoder.Encode(ctx, img[0])
-		handleErr(err)
 		return gimage.NewH264Image(bytes), func() {}, err
 	})
 
-	cam := static{
-		VideoReader: reader,
-	}
-
+	cam := static{VideoReader: reader}
 	src, err := camera.NewVideoSourceFromReader(ctx, cam, nil, camera.ColorStream)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get source from reader")
-	}
+	handleErr(err)
 
 	name := resource.NewName(camera.API, "static")
 	return camera.FromVideoSource(name, src, logger), nil
