@@ -11,7 +11,6 @@ import (
 	"go.viam.com/rdk/gostream"
 	ourcodec "go.viam.com/rdk/gostream/codec"
 	"go.viam.com/rdk/gostream/codec/x264"
-	gimage "go.viam.com/rdk/gostream/image"
 	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/module"
 	"go.viam.com/rdk/pointcloud"
@@ -109,7 +108,7 @@ func frameToH264(ctx context.Context, e ourcodec.VideoEncoder, f image.Image) (i
 	bytes, err := e.Encode(ctx, f)
 	handleErr(err)
 
-	return gimage.NewH264Image(bytes), func() {}, err
+	return rimage.NewH264Frame(bytes, 640, 480, 30), func() {}, err
 
 }
 func frameToJpeg(f *image.RGBA) (image.Image, func(), error) {
