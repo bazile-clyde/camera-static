@@ -94,8 +94,8 @@ func (s *static) Close(_ context.Context) error {
 
 func (s *static) Properties(ctx context.Context) (camera.Properties, error) {
 	return camera.Properties{
-		SupportsPCD:  true,
-		FrameFormats: []string{"video/h264", "image/jpeg"},
+		SupportsPCD: true,
+		MIMETypes:   []string{"video/h264", "image/jpeg"},
 	}, nil
 }
 
@@ -106,7 +106,6 @@ func handleErr(err error) {
 }
 
 func frameToH264(ctx context.Context, e ourcodec.VideoEncoder, f image.Image) (image.Image, func(), error) {
-	// fmt.Println("H264 ENCODER!")
 	bytes, err := e.Encode(ctx, f)
 	handleErr(err)
 
@@ -114,7 +113,6 @@ func frameToH264(ctx context.Context, e ourcodec.VideoEncoder, f image.Image) (i
 
 }
 func frameToJpeg(f *image.RGBA) (image.Image, func(), error) {
-	// fmt.Println("JPEG ENCODER!")
 	b := new(bytes.Buffer)
 	w := bufio.NewWriter(b)
 	handleErr(rimage.EncodeJPEG(w, f))
@@ -125,7 +123,7 @@ func frameToJpeg(f *image.RGBA) (image.Image, func(), error) {
 	return ret, func() {}, err
 }
 
-func newCamera(ctx context.Context, _ resource.Dependencies, _ resource.Config, logger logging.Logger) (camera.Camera, error) {
+func newCamera(_ context.Context, _ resource.Dependencies, _ resource.Config, _ logging.Logger) (camera.Camera, error) {
 	// ffmpeg -f lavfi -i testsrc=duration=10:size=640x480:rate=30 testsrc.mp4
 	v, err := vidio.NewVideo("/usr/local/libs/camera-static/testsrc.mp4")
 	handleErr(err)
