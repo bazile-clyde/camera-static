@@ -17,6 +17,7 @@ import (
 	"go.viam.com/rdk/resource"
 	"go.viam.com/rdk/rimage"
 	"go.viam.com/rdk/rimage/transform"
+	"go.viam.com/rdk/utils"
 	"image"
 	"image/jpeg"
 	"strings"
@@ -91,10 +92,12 @@ func (s *static) Close(_ context.Context) error {
 	return nil
 }
 
-func (s *static) Properties(ctx context.Context) (camera.Properties, error) {
+func (s *static) Properties(_ context.Context) (camera.Properties, error) {
 	return camera.Properties{
-		SupportsPCD: true,
-		MIMETypes:   []string{"video/h264", "image/jpeg"},
+		MimeTypes: []string{
+			utils.MimeTypeH264,
+			utils.MimeTypeJPEG,
+		},
 	}, nil
 }
 
@@ -108,7 +111,7 @@ func frameToH264(ctx context.Context, e ourcodec.VideoEncoder, f image.Image) (i
 	bytes, err := e.Encode(ctx, f)
 	handleErr(err)
 
-	return rimage.NewH264Frame(bytes, 640, 480, 30), func() {}, err
+	return rimage.NewH264Image(bytes, 640, 480, 30), func() {}, err
 
 }
 func frameToJpeg(f *image.RGBA) (image.Image, func(), error) {
@@ -140,9 +143,11 @@ func newCamera(_ context.Context, _ resource.Dependencies, _ resource.Config, _ 
 		frame.Pix = v.FrameBuffer()
 
 		mime := gostream.MIMETypeHint(ctx, "")
-		if strings.Contains(mime, "video/h264") {
+		if strings.Contains(mime, utils.MimeTypeH264) {
+			fmt.Println("RETURNING H264")
 			return frameToH264(ctx, encoder, frame)
-		} else if strings.Contains(mime, "image/jpeg") {
+		} else if strings.Contains(mime, utils.MimeTypeJPEG) {
+			fmt.Println("RETURNING JPEG")
 			return frameToJpeg(frame)
 		} else {
 			panic(fmt.Sprintln("unrecognized MIME type:", mime))

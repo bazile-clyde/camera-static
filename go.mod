@@ -121,7 +121,7 @@ require (
 	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	go.viam.com/api v0.1.227 // indirect
+	go.viam.com/api v0.1.237 // indirect
 	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2 // indirect
 	go.viam.com/utils v0.1.54 // indirect
 	goji.io v2.0.2+incompatible // indirect
@@ -151,5 +151,3 @@ require (
 )
 
 replace go.viam.com/rdk => /usr/local/libs/rdk
-
-replace go.viam.com/api => /usr/local/libs/api
